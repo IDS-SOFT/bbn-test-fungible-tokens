@@ -21,6 +21,7 @@ contract FungibleToken is IERC20, Ownable {
     constructor(uint256 initialSupply) {
         _totalSupply = initialSupply * (10**uint256(decimals));
         _balances[msg.sender] = _totalSupply;
+
         emit Transfer(address(0), msg.sender, _totalSupply);
     }
 
@@ -32,29 +33,16 @@ contract FungibleToken is IERC20, Ownable {
         return _balances[account];
     }
 
-    function transfer(address recipient, uint256 amount)
-        public
-        override
-        returns (bool)
-    {
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
         _transfer(msg.sender, recipient, amount);
         return true;
     }
 
-    function allowance(address owner, address spender)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function allowance(address owner, address spender) public view override returns (uint256) {
         return _allowances[owner][spender];
     }
 
-    function approve(address spender, uint256 amount)
-        public
-        override
-        returns (bool)
-    {
+    function approve(address spender, uint256 amount) public override returns (bool) {
         _approve(msg.sender, spender, amount);
         return true;
     }
@@ -64,12 +52,13 @@ contract FungibleToken is IERC20, Ownable {
         address recipient,
         uint256 amount
     ) public override returns (bool) {
+        require(sender != address(0), "Invalid address");
+
         _transfer(sender, recipient, amount);
         uint256 currentAllowance = _allowances[sender][msg.sender];
-        require(
-            currentAllowance >= amount,
-            "ERC20: transfer amount exceeds allowance"
-        );
+
+        require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+
         _approve(sender, msg.sender, currentAllowance - amount);
         return true;
     }
@@ -78,6 +67,7 @@ contract FungibleToken is IERC20, Ownable {
         public
         returns (bool)
     {
+        require(spender != address(0), "Invalid address");
         _approve(
             msg.sender,
             spender,
@@ -90,26 +80,34 @@ contract FungibleToken is IERC20, Ownable {
         public
         returns (bool)
     {
+        require(spender != address(0), "Invalid address");
+
         uint256 currentAllowance = _allowances[msg.sender][spender];
+
         require(
             currentAllowance >= subtractedValue,
             "ERC20: decreased allowance below zero"
         );
+
         _approve(msg.sender, spender, currentAllowance - subtractedValue);
         return true;
     }
 
     function mint(address account, uint256 amount) public onlyOwner {
         require(account != address(0), "ERC20: mint to the zero address");
+
         _totalSupply = _totalSupply.add(amount);
         _balances[account] = _balances[account].add(amount);
+
         emit Transfer(address(0), account, amount);
     }
 
     function burn(address account, uint256 amount) public onlyOwner {
         require(account != address(0), "ERC20: burn from the zero address");
+
         _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
         _totalSupply = _totalSupply.sub(amount);
+
         emit Transfer(account, address(0), amount);
     }
 
@@ -123,6 +121,7 @@ contract FungibleToken is IERC20, Ownable {
 
         _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
         _balances[recipient] = _balances[recipient].add(amount);
+
         emit Transfer(sender, recipient, amount);
     }
 
@@ -139,11 +138,9 @@ contract FungibleToken is IERC20, Ownable {
     }
 
     function getBalance(address user_account) external returns (uint){
-    
-       string memory data = "User Balance is : ";
+        require(user_account != address(0), "Invalid address");
        uint user_bal = user_account.balance;
-       emit CheckBalance(data, user_bal );
+       emit CheckBalance(user_bal);
        return (user_bal);
-
     }
 }
